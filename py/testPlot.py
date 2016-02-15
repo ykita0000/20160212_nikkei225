@@ -12,15 +12,23 @@ import sqlite3
 import ROOT
 from ROOT import *
 
+hOp = TH1D('hOp','',100,0,50000)
+hHi = TH1D('hHi','',100,0,50000)
+hLo = TH1D('hLo','',100,0,50000)
+hCl = TH1D('hCl','',100,0,50000)
+
 conn = sqlite3.connect('out/nikkei225.db',isolation_level=None)
 c = conn.cursor()
-hOpen = TH1D('hOpen','',100,0,50000)
-
 for i,row in enumerate(c.execute('''SELECT * FROM nikkei225''')):
-    hOpen.Fill(row[1])
-
+    hOp.Fill(row[1])
+    hHi.Fill(row[2])
+    hLo.Fill(row[3])
+    hCl.Fill(row[4])
 c.close()
 conn.close()
 
-hOpen.Draw()
+hOp.Draw()
+hHi.Draw('SAME')
+hLo.Draw('SAME')
+hCl.Draw('SAME')
 raw_input('>')
