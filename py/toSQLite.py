@@ -10,7 +10,7 @@ import os, os.path
 import sys
 import sqlite3
 
-conn = sqlite3.connect('out/nikkei225.db',isolation_level=None)
+conn = sqlite3.connect('out/data.db',isolation_level=None)
 c = conn.cursor()
 try: 
     c.execute('''CREATE TABLE nikkei225 
