@@ -17,9 +17,9 @@ hHi = TH1D('hHi','',100,0,50000)
 hLo = TH1D('hLo','',100,0,50000)
 hCl = TH1D('hCl','',100,0,50000)
 
-conn = sqlite3.connect('out/nikkei225.db',isolation_level=None)
+conn = sqlite3.connect('out/data.db',isolation_level=None)
 c = conn.cursor()
-for i,row in enumerate(c.execute('''SELECT * FROM nikkei225''')):
+for i,row in enumerate(c.execute('''SELECT datetime(date),op,hi,lo,cl,vol,adjclo FROM nikkei225 where date>='2000-01-01' ''')):
     hOp.Fill(row[1])
     hHi.Fill(row[2])
     hLo.Fill(row[3])

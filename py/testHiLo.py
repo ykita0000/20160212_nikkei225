@@ -14,12 +14,16 @@ from ROOT import *
 
 h = TH1D('h','',100,0,2500)
 
-conn = sqlite3.connect('out/nikkei225.db',isolation_level=None)
-c = conn.cursor()
-for i,row in enumerate(c.execute('''SELECT * FROM nikkei225''')):
+conn = sqlite3.connect('out/data.db',isolation_level=None)
+cur = conn.cursor()
+for i,row in enumerate(cur.execute('''SELECT * FROM nikkei225''')):
     h.Fill(row[2]-row[3])
-c.close()
+    print row
+cur.close()
 conn.close()
 
+c = TCanvas('c','',511,512)
+c.Draw()
 h.Draw()
+c.Update()
 raw_input('>')
