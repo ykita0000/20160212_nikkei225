@@ -12,6 +12,10 @@ import sqlite3
 import ROOT
 from ROOT import *
 import numpy as np
+import math
+from datetime import datetime
+import time
+ROOT_TIME_OFFSET = 788918400
 
 conn = sqlite3.connect('out/data.db',isolation_level=None)
 cur = conn.cursor()
@@ -27,7 +31,7 @@ while True:
     FROM
         unrate
     INNER JOIN
-        nikkei225 ON datetime(unrate.date)=datetime(nikkei225.date)
+        nikkei225 ON datetime(unrate.date)==datetime(nikkei225.date)
     WHERE
         datetime(unrate.date)>='%s'
     ORDER BY
@@ -37,7 +41,8 @@ while True:
     print q
     for i,row in enumerate(cur.execute(q)):
         print row
-        dt.append(row[0])
+        tm = int(time.mktime(datetime.strptime(row[0],'%Y-%m-%d %H:%M:%S').timetuple()))
+        dt.append(tm-ROOT_TIME_OFFSET)
         stock_price.append([row[1],row[2],row[3],row[4]])
         unrate.append(row[7])
     
@@ -46,24 +51,27 @@ while True:
     
     ### time series same canvas
     nXBins = len(stock_price)
-    hOp = TH1D('hOp','',nXBins,0,nXBins)
-    hOp.SetLineColor(2)
-    hHi = TH1D('hHi','',nXBins,0,nXBins)
-    hHi.SetLineColor(3)
-    hLo = TH1D('hLo','',nXBins,0,nXBins)
-    hLo.SetLineColor(4)
-    hCl = TH1D('hCl','',nXBins,0,nXBins)
-    hCl.SetLineColor(6)
-    hUNRATE = TH1D('hUNRATE','',nXBins,0,nXBins) 
-    hUNRATE.SetLineColor(1)
+    # hOp = TH1D('hOp','',nXBins,0,nXBins)
+    gOp = TGraph(nXBins)
+    gOp.SetLineColor(2)
+    gHi = TGraph(nXBins)
+    gHi.SetLineColor(3)
+    gLo = TGraph(nXBins)
+    gLo.SetLineColor(4)
+    gCl = TGraph(nXBins)
+    gCl.SetLineColor(6)
+    gUNRATE = TGraph(nXBins) 
+    gUNRATE.GetXaxis().SetTitle('date')
+    gUNRATE.GetYaxis().SetTitle('UNRATE [%]')
+    gUNRATE.SetLineColor(1)
     for i in xrange(nXBins):
-        hOp.SetBinContent(i+1,stock_price[i][0])
-        hHi.SetBinContent(i+1,stock_price[i][1])
-        hLo.SetBinContent(i+1,stock_price[i][2])
-        hCl.SetBinContent(i+1,stock_price[i][3])
-        hUNRATE.SetBinContent(i+1,unrate[i])
+        gOp.SetPoint(i,dt[i],stock_price[i][0])
+        gHi.SetPoint(i,dt[i],stock_price[i][1])
+        gLo.SetPoint(i,dt[i],stock_price[i][2])
+        gCl.SetPoint(i,dt[i],stock_price[i][3])
+        gUNRATE.SetPoint(i,dt[i],unrate[i])
     
-    ### unrate vs stock plice
+    ### unrate vs stock price
     gUnOp = TGraph(nXBins)
     gUnOp.SetMarkerStyle(2)
     gUnOp.SetMarkerColor(2)
@@ -77,28 +85,35 @@ while True:
     gUnCl.SetMarkerStyle(2)
     gUnCl.SetMarkerColor(6)
     for i in xrange(nXBins):
-        gUnOp.SetPoint(i,unrate[i],stock_price[i][0])
-        gUnHi.SetPoint(i,unrate[i],stock_price[i][1])
-        gUnLo.SetPoint(i,unrate[i],stock_price[i][2])
-        gUnCl.SetPoint(i,unrate[i],stock_price[i][3])
-
+        gUnOp.SetPoint(i,unrate[i],math.log(stock_price[i][0]))
+        gUnHi.SetPoint(i,unrate[i],math.log(stock_price[i][1]))
+        gUnLo.SetPoint(i,unrate[i],math.log(stock_price[i][2]))
+        gUnCl.SetPoint(i,unrate[i],math.log(stock_price[i][3]))
     
-    c = TCanvas('c','Plot',512,512)
+    c = TCanvas('c','Plot',512*2,512*2)
     c.Draw()
     c.Divide(1,3)
     c.cd(1)
+    # gStyle.SetTimeOffset(-788918400)
+    gStyle.SetNdivisions(515)
+    gOp.GetXaxis().SetTimeDisplay(1)
+    gOp.GetXaxis().SetTimeFormat('%Y-%m-%d')
     gPad.SetGrid(1)
-    hOp.Draw()
-    hHi.Draw('same')
-    hLo.Draw('same')
-    hCl.Draw('same')
+    gOp.Draw('AL')
+    gHi.Draw('Lsame')
+    gLo.Draw('Lsame')
+    gCl.Draw('Lsame')
     c.cd(2)
     gPad.SetGrid(1)
+    # gStyle.SetTimeOffset(-788918400);
+    gStyle.SetNdivisions(515)
+    gUNRATE.GetXaxis().SetTimeDisplay(1)
+    gUNRATE.GetXaxis().SetTimeFormat('%Y-%m-%d')
 
     # right_max = 1.1*hUNRATE.GetMaximum()
     # scale = gPad.GetUymax()/right_max
     # hUNRATE.Scale(scale)
-    hUNRATE.Draw()
+    gUNRATE.Draw('AL')
     
     gPad.Update()
     
