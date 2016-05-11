@@ -85,10 +85,10 @@ while True:
     gUnCl.SetMarkerStyle(2)
     gUnCl.SetMarkerColor(6)
     for i in xrange(nXBins):
-        gUnOp.SetPoint(i,unrate[i],math.log(stock_price[i][0],10))
-        gUnHi.SetPoint(i,unrate[i],math.log(stock_price[i][1],10))
-        gUnLo.SetPoint(i,unrate[i],math.log(stock_price[i][2],10))
-        gUnCl.SetPoint(i,unrate[i],math.log(stock_price[i][3],10))
+        gUnOp.SetPoint(i,unrate[i],stock_price[i][0])
+        gUnHi.SetPoint(i,unrate[i],stock_price[i][1])
+        gUnLo.SetPoint(i,unrate[i],stock_price[i][2])
+        gUnCl.SetPoint(i,unrate[i],stock_price[i][3])
     
     c = TCanvas('c','Plot',512*2,512*2)
     c.Draw()
@@ -130,6 +130,7 @@ while True:
     c1.Draw()
     gPad.SetGrid(1)
     gUnOp.Fit('expo')
+    gUnOp.Fit('pol1')
     gUnOp.Draw('AP')
     c1.Update()
 
